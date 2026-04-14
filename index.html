@@ -12,13 +12,11 @@
         .label { font-size: 14px; color: #aaa; margin-bottom: 5px; }
         .val { font-size: 30px; font-weight: bold; color: #fff; line-height: 1.1; }
         .face-svg { width: 80px; height: 80px; }
-        /* 3セット目：白背景パノラマ */
         .pan-content { width: 512px; height: 128px; background-color: #fff; display: flex; align-items: center; overflow: hidden; position: relative; }
         .pan-face-fixed { width: 128px; height: 128px; display: flex; justify-content: center; align-items: center; background-color: #fff; z-index: 10; }
         .ticker-container { flex: 1; height: 128px; display: flex; align-items: center; overflow: hidden; position: relative; }
-        .ticker-text { white-space: nowrap; font-size: 32px; font-weight: bold; color: #000; position: absolute; padding-left: 100%; animation: ticker-anim 25s linear infinite; }
+        .ticker-text { white-space: nowrap; font-size: 32px; font-weight: bold; color: #000; position: absolute; padding-left: 100%; animation: ticker-anim 15s linear infinite; }
         @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-250%); } }
-        /* 判定色 */
         .level-0 { color: #00b0f0 !important; } .level-1, .level-2 { color: #ffff00 !important; }
         .level-3 { color: #ff6600 !important; } .level-4 { color: #ff0000 !important; }
     </style>
@@ -56,18 +54,20 @@
 
 <script>
     const params = new URLSearchParams(window.location.search);
-    const lat = params.get('lat') || '34.6937'; // デフォルト大阪
+    const lat = params.get('lat') || '34.6937'; 
     const lon = params.get('lon') || '135.5023';
     let currentSet = 1;
 
     async function updateWeather() {
         try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&relative_humidity_2m=true`);
+            // 最新データを確実に取得するAPI URL
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m`);
             const data = await res.json();
-            const temp = data.current_weather.temperature;
-            const humi = data.hourly.relative_humidity_2m[0];
             
-            // 簡易WBGT計算
+            // data.current から取得するように変更
+            const temp = data.current.temperature_2m;
+            const humi = data.current.relative_humidity_2m;
+            
             const wbgt = (0.725 * temp) + (0.0368 * humi) + (0.00115 * temp * humi) - 2.503;
             let lv = 0;
             if (wbgt >= 31) lv = 4; else if (wbgt >= 28) lv = 3; else if (wbgt >= 25) lv = 2; else if (wbgt >= 21) lv = 1;
@@ -82,7 +82,10 @@
             document.querySelectorAll('.face-use').forEach(el => el.setAttribute('href', '#face-' + lv));
             document.querySelectorAll('.panel').forEach(el => el.className = 'panel level-' + lv);
             document.getElementById('ticker').innerText = `【${info[lv].n}】${info[lv].t} 気温:${Math.round(temp)}℃ 湿度:${Math.round(humi)}%`;
-        } catch (e) { console.error("API Error"); }
+        } catch (e) { 
+            console.error("API Error"); 
+            document.getElementById('ticker').innerText = "データ取得エラー。再読み込みしてください。";
+        }
     }
 
     function updateTime() {
@@ -103,7 +106,7 @@
 
     updateTime(); updateWeather();
     setInterval(updateTime, 1000);
-    setInterval(updateWeather, 300000); // 5分更新
+    setInterval(updateWeather, 300000);
 </script>
 </body>
 </html>
