@@ -2,161 +2,179 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WBGT Real-time LED Signage - Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WBGT 4-Sided Cube Signage</title>
     <style>
-        /* Figmaデザインのフォントと基本設定を再現 */
-        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; }
-        .container { width: 512px; height: 128px; position: relative; overflow: hidden; }
-        .set-group { display: none; width: 512px; height: 128px; flex-direction: row; position: absolute; top: 0; left: 0; }
-        .active { display: flex !important; }
-        
-        /* 各パネルのレイアウト調整 */
-        .panel { width: 128px; height: 128px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; border-right: 1px solid #333; }
-        .label { font-size: 14px; font-weight: 500; color: #999; margin-bottom: 6px; letter-spacing: 0.05em; }
-        .val { font-size: 34px; font-weight: 700; color: #fff; line-height: 1; }
-        .unit { font-size: 16px; margin-left: 2px; font-weight: 400; }
-        
-        /* アイコンサイズ */
-        .face-svg { width: 88px; height: 88px; }
-        .weather-svg { width: 68px; height: 68px; }
+        /* PDFのフォントイメージを再現 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
 
-        /* セット3：ニュースティッカー（白背景デザイン） */
-        .pan-content { width: 512px; height: 128px; background-color: #fff; display: flex; align-items: center; overflow: hidden; }
-        .ticker-container { width: 100%; height: 128px; position: relative; display: flex; align-items: center; }
-        .ticker-text { 
-            white-space: nowrap; 
-            font-size: 36px; 
-            font-weight: 800; 
-            color: #000; 
-            position: absolute; 
-            padding-left: 100%; 
-            display: flex; 
-            align-items: center;
-            animation: ticker-anim 12s linear infinite; 
+        :root {
+            --bg-color: #0070C0; /* デフォルト：ほぼ安全（青） */
+            --text-color: #ffffff;
         }
-        .ticker-face-icon { width: 50px; height: 50px; margin-left: 15px; }
 
-        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-240%); } }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            font-family: 'Noto Sans JP', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        /* 判定カラー */
-        .level-0 { color: #00b0f0 !important; } 
-        .level-1, .level-2 { color: #ffff00 !important; } 
-        .level-3 { color: #ff6600 !important; } 
-        .level-4 { color: #ff0000 !important; }
+        /* 4面を横に並べたコンテナ (512x128) */
+        .cube-container {
+            display: flex;
+            width: 512px;
+            height: 128px;
+            background-color: #000;
+        }
+
+        /* 各面 (128x128) */
+        .panel {
+            width: 128px;
+            height: 128px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-sizing: border-box;
+            padding: 5px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-right: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* PDFのレイアウト・フォントサイズ再現 */
+        .temp-range { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+        .wbgt-value { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+        .status-label { font-size: 22px; font-weight: 900; line-height: 1.1; margin: 4px 0; }
+        .advice { font-size: 9px; font-weight: 700; margin-top: 4px; border-top: 1px solid rgba(255,255,255,0.5); padding-top: 4px; width: 90%; }
+
+        /* 判定色 */
+        .level-safe { --bg-color: #0070C0; }     /* ほぼ安全: 青 */
+        .level-caution { --bg-color: #00B050; }  /* 注意: 緑 */
+        .level-warning { --bg-color: #FFC000; }  /* 警戒: 黄 */
+        .level-severe { --bg-color: #FF6600; }   /* 厳重警戒: 橙 */
+        .level-danger { --bg-color: #FF0000; }   /* 危険: 赤 */
+
     </style>
 </head>
 <body>
 
-<svg style="display: none;">
-    <symbol id="icon-sunny" viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="#ff4d00"/><g stroke="#ff4d00" stroke-width="8" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="90"/><line x1="10" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="32" y2="32"/><line x1="68" y1="68" x2="78" y2="78"/><line x1="22" y1="78" x2="32" y2="68"/><line x1="68" y1="22" x2="78" y2="32"/></g></symbol>
-    <symbol id="icon-cloudy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#999"/></symbol>
-    <symbol id="icon-rainy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#666"/><path d="M45,75 L40,90 M65,75 L60,90" stroke="#00b0f0" stroke-width="6" stroke-linecap="round"/></symbol>
-    
-    <symbol id="face-0" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#00b0f0"/><circle cx="35" cy="40" r="5" fill="#fff"/><circle cx="65" cy="40" r="5" fill="#fff"/><path d="M 30 65 Q 50 85 70 65" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
-    <symbol id="face-1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ffff00"/><circle cx="35" cy="40" r="5" fill="#000"/><circle cx="65" cy="40" r="5" fill="#000"/><line x1="30" y1="70" x2="70" y2="70" stroke="#000" stroke-width="5" stroke-linecap="round"/></symbol>
-    <symbol id="face-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ffff00"/><path d="M 30 45 Q 35 35 40 45 M 60 45 Q 65 35 70 45" stroke="#000" stroke-width="4" fill="none"/><path d="M 35 75 Q 50 65 65 75" stroke="#000" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
-    <symbol id="face-3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff6600"/><line x1="25" y1="35" x2="40" y2="45" stroke="#fff" stroke-width="6"/><line x1="40" y1="35" x2="25" y2="45" stroke="#fff" stroke-width="6"/><line x1="60" y1="35" x2="75" y2="45" stroke="#fff" stroke-width="6"/><line x1="75" y1="35" x2="60" y2="45" stroke="#fff" stroke-width="6"/><path d="M 35 75 Q 50 65 65 75" stroke="#fff" stroke-width="5" fill="none"/></symbol>
-    <symbol id="face-4" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff0000"/><line x1="25" y1="35" x2="40" y2="45" stroke="#fff" stroke-width="6"/><line x1="40" y1="35" x2="25" y2="45" stroke="#fff" stroke-width="6"/><line x1="60" y1="35" x2="75" y2="45" stroke="#fff" stroke-width="6"/><line x1="75" y1="35" x2="60" y2="45" stroke="#fff" stroke-width="6"/><path d="M 30 75 Q 35 65 40 75 T 50 75 T 60 75 T 70 75" stroke="#fff" stroke-width="5" fill="none"/></symbol>
-</svg>
+<div class="cube-container" id="signage">
+    <div class="panel" id="p1">
+        <div class="temp-range" id="temp-jp">24℃未満</div>
+        <div class="wbgt-value" id="val-jp">21未満</div>
+        <div class="status-label" id="label-jp">ほぼ安全</div>
+        <div class="advice" id="adv-jp">適宜水分補給</div>
+    </div>
 
-<div class="container">
-    <div id="set1" class="set-group active">
-        <div class="panel"><div class="label" id="date1">--/--</div><div class="val" id="time1">--:--</div></div>
-        <div class="panel"><div class="label">現在の天気</div><svg class="weather-svg"><use id="weather-icon" href="#icon-sunny"/></svg></div>
-        <div class="panel"><div class="label">気温</div><div class="val"><span class="temp-val">--</span><span class="unit">℃</span></div></div>
-        <div class="panel"><div class="label">湿度</div><div class="val"><span class="humi-val">--</span><span class="unit">%</span></div></div>
+    <div class="panel" id="p2">
+        <div class="temp-range" id="temp-en">Below 24℃</div>
+        <div class="wbgt-value" id="val-en">Below 21</div>
+        <div class="status-label" id="label-en">Safe</div>
+        <div class="advice" id="adv-en">Stay hydrated</div>
     </div>
-    
-    <div id="set2" class="set-group">
-        <div class="panel"><div class="label">暑さ指数</div><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
-        <div class="panel"><div class="label" id="date2">--/--</div><div class="val" id="time2">--:--</div></div>
-        <div class="panel"><div class="label" id="date3">--/--</div><div class="val" id="time3">--:--</div></div>
-        <div class="panel"><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
+
+    <div class="panel" id="p3">
+        <div class="temp-range" id="temp-vi">Dưới 24℃</div>
+        <div class="wbgt-value" id="val-vi">Dưới 21</div>
+        <div class="status-label" id="label-vi">An toàn</div>
+        <div class="advice" id="adv-vi">Bổ sung nước</div>
     </div>
-    
-    <div id="set3" class="set-group">
-        <div class="pan-content">
-            <div class="ticker-container">
-                <div class="ticker-text">
-                    <span id="ticker-msg">データ取得中...</span>
-                    <svg class="ticker-face-icon"><use class="face-use" href="#face-0"/></svg>
-                </div>
-            </div>
-        </div>
+
+    <div class="panel" id="p4">
+        <div class="temp-range" id="temp-zh">24℃以下</div>
+        <div class="wbgt-value" id="val-zh">21以下</div>
+        <div class="status-label" id="label-zh">基本安全</div>
+        <div class="advice" id="adv-zh">注意补水</div>
     </div>
 </div>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const lat = params.get('lat') || '34.6937'; // デフォルト大阪
-    const lon = params.get('lon') || '135.5023';
-    let currentSet = 1;
+    // 現在の大阪(62078)の値：12.8 を想定した更新処理
+    function updateWBGT(val) {
+        const signage = document.getElementById('signage');
+        let levelClass = '';
+        let data = {};
 
-    async function updateWeather() {
-        try {
-            // 気温・湿度・ウェザーコードを最新の状態で一括取得
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`);
-            const data = await res.json();
-            
-            const temp = data.current.temperature_2m;
-            const humi = data.current.relative_humidity_2m;
-            const code = data.current.weather_code;
-
-            // 天気アイコン分岐（Open-Meteo Code準拠）
-            let wIcon = "#icon-sunny";
-            if (code >= 1 && code <= 3) wIcon = "#icon-cloudy";
-            else if (code >= 51) wIcon = "#icon-rainy";
-            document.getElementById('weather-icon').setAttribute('href', wIcon);
-
-            // WBGT計算ロジック
-            const wbgt = (0.725 * temp) + (0.0368 * humi) + (0.00115 * temp * humi) - 2.503;
-            let lv = 0;
-            if (wbgt >= 31) lv = 4;      // 危険
-            else if (wbgt >= 28) lv = 3; // 厳重警戒
-            else if (wbgt >= 25) lv = 2; // 警戒
-            else if (wbgt >= 21) lv = 1; // 注意
-            
-            const info = [
-                {n:"ほぼ安全", t:"適宜水分補給を。"}, 
-                {n:"注意", t:"積極的に水分補給。"}, 
-                {n:"警戒", t:"積極的な休憩と水分。"}, 
-                {n:"厳重警戒", t:"激しい運動は中止。"}, 
-                {n:"危険", t:"運動は原則中止。"}
-            ];
-
-            // UI各部の更新
-            document.querySelectorAll('.temp-val').forEach(el => el.innerText = Math.round(temp));
-            document.querySelectorAll('.humi-val').forEach(el => el.innerText = Math.round(humi));
-            document.querySelectorAll('.face-use').forEach(el => el.setAttribute('href', '#face-' + lv));
-            document.getElementById('ticker-msg').innerText = `【${info[lv].n}】${info[lv].t}`;
-            
-        } catch (e) { 
-            console.error("Fetch Error:", e);
+        if (val < 21) {
+            levelClass = 'level-safe';
+            data = {
+                jp: ["24℃未満", "21未満", "ほぼ安全", "適宜水分補給"],
+                en: ["Below 24℃", "Below 21", "Safe", "Stay hydrated"],
+                vi: ["Dưới 24℃", "Dưới 21", "An toàn", "Bổ sung nước"],
+                zh: ["24℃以下", "21以下", "基本安全", "注意补水"]
+            };
+        } else if (val < 25) {
+            levelClass = 'level-caution';
+            data = {
+                jp: ["24~28℃", "21~25", "注意", "積極的に水分補給"],
+                en: ["24~28℃", "21~25", "Caution", "Actively hydrate"],
+                vi: ["24~28℃", "21~25", "Chú ý", "Uống nước thường xuyên"],
+                zh: ["24~28℃", "21~25", "注意", "及时补水"]
+            };
+        } else if (val < 28) {
+            levelClass = 'level-warning';
+            data = {
+                jp: ["28~31℃", "25~28", "警戒", "定期的に休憩"],
+                en: ["28~31℃", "25~28", "Warning", "Take regular breaks"],
+                vi: ["28~31℃", "25~28", "Cảnh báo", "Nghỉ ngơi định kỳ"],
+                zh: ["28~31℃", "25~28", "警戒", "定时休息"]
+            };
+        } else if (val < 31) {
+            levelClass = 'level-severe';
+            data = {
+                jp: ["31~35℃", "28~31", "厳重警戒", "激しい作業は中止"],
+                en: ["31~35℃", "28~31", "Severe Warning", "Stop intense work"],
+                vi: ["31~35℃", "28~31", "Cảnh báo nghiêm trọng", "Ngừng làm việc nặng"],
+                zh: ["31~35℃", "28~31", "严重警戒", "停止剧烈作业"]
+            };
+        } else {
+            levelClass = 'level-danger';
+            data = {
+                jp: ["35℃以上", "31以上", "危険", "作業を直ちに中止"],
+                en: ["Above 35℃", "Above 31", "Danger", "Stop work immediately"],
+                vi: ["Trên 35℃", "Trên 31", "Nguy hiểm", "Dừng công việc ngay"],
+                zh: ["35℃以上", "31以上", "危险", "立即停止作业"]
+            };
         }
+
+        // デザイン（背景色）の適用
+        document.querySelectorAll('.panel').forEach(p => {
+            p.className = 'panel ' + levelClass;
+        });
+
+        // テキストの流し込み（PDFの内容と全く一緒に更新）
+        document.getElementById('temp-jp').innerText = data.jp[0];
+        document.getElementById('val-jp').innerText = data.jp[1];
+        document.getElementById('label-jp').innerText = data.jp[2];
+        document.getElementById('adv-jp').innerText = data.jp[3];
+
+        document.getElementById('temp-en').innerText = data.en[0];
+        document.getElementById('val-en').innerText = data.en[1];
+        document.getElementById('label-en').innerText = data.en[2];
+        document.getElementById('adv-en').innerText = data.en[3];
+
+        document.getElementById('temp-vi').innerText = data.vi[0];
+        document.getElementById('val-vi').innerText = data.vi[1];
+        document.getElementById('label-vi').innerText = data.vi[2];
+        document.getElementById('adv-vi').innerText = data.vi[3];
+
+        document.getElementById('temp-zh').innerText = data.zh[0];
+        document.getElementById('val-zh').innerText = data.zh[1];
+        document.getElementById('label-zh').innerText = data.zh[2];
+        document.getElementById('adv-zh').innerText = data.zh[3];
     }
 
-    function updateTime() {
-        const now = new Date();
-        const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-        const d = (now.getMonth()+1).toString().padStart(2,'0') + '/' + now.getDate().toString().padStart(2,'0');
-        for(let i=1; i<=3; i++) {
-            if(document.getElementById('time'+i)) document.getElementById('time'+i).innerText = t;
-            if(document.getElementById('date'+i)) document.getElementById('date'+i).innerText = d;
-        }
-    }
-
-    // パネル切り替えループ（5秒）
-    setInterval(() => {
-        document.getElementById('set'+currentSet).classList.remove('active');
-        currentSet = (currentSet % 3) + 1;
-        document.getElementById('set'+currentSet).classList.add('active');
-    }, 5000);
-
-    // 実行開始
-    updateTime(); 
-    updateWeather();
-    setInterval(updateTime, 1000);
-    setInterval(updateWeather, 300000); // 5分周期
+    // 最新値 12.8 を反映
+    updateWBGT(12.8);
 </script>
+
 </body>
 </html>
