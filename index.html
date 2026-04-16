@@ -143,4 +143,29 @@
             themeColor = '#FF0000'; 
             data = {
                 jp: ["35℃以上", "31以上", "危険", "作業を直ちに中止"],
-                en:
+                en: ["Above 35℃", "Above 31", "Danger", "Stop work immediately"],
+                vi: ["Trên 35℃", "Trên 31", "Nguy hiểm", "Dừng công việc ngay"],
+                zh: ["35℃以上", "31以上", "危险", "立即停止作业"]
+            };
+        }
+
+        const panels = document.querySelectorAll('.panel');
+        panels.forEach(p => {
+            const lang = p.getAttribute('data-lang');
+            const content = data[lang];
+            p.style.backgroundColor = themeColor;
+            p.innerHTML = `
+                <div class="temp-range">${content[0]}</div>
+                <div class="wbgt-val">${content[1]}</div>
+                <div class="status-label">${content[2]}</div>
+                <div class="advice">${content[3]}</div>
+            `;
+        });
+    }
+
+    // 取得したWBGT値を反映（12.8：ほぼ安全）
+    updateContent(12.8);
+</script>
+
+</body>
+</html>
