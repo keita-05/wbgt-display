@@ -2,82 +2,68 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WBGT 4-Sided Cube Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>WBGT 4-Panel Seamless Slide (No Scale)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
 
         :root {
-            /* PDFのデザインに基づく配色定義 */
-            --safe-bg: #0070C0;    /* ほぼ安全: 青 */
-            --caution-bg: #00B050; /* 注意: 緑 */
-            --warning-bg: #FFC000; /* 警戒: 黄 */
-            --severe-bg: #FF6600;  /* 厳重警戒: 橙 */
-            --danger-bg: #FF0000;  /* 危険: 赤 */
-            --text-color: #ffffff;
-            --p-size: 128px;
+            --bg-safe: #0070C0;
+            --bg-caution: #00B050;
+            --bg-warning: #FFC000;
+            --bg-severe: #FF6600;
+            --bg-danger: #FF0000;
+            --text-white: #ffffff;
+            --unit: 128px;
         }
 
-        /* 座標 xy 0,0 固定 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
+        /* 絶対に512x128のサイズを維持する */
+        html, body {
             background-color: #000;
             font-family: 'Noto Sans JP', sans-serif;
             overflow: hidden;
-            width: var(--p-size);
-            height: var(--p-size);
+            width: 512px !important;
+            height: 128px !important;
             position: absolute;
             top: 0;
             left: 0;
+            margin: 0;
         }
 
-        /* 128x128の表示窓 */
         .viewport {
-            width: var(--p-size);
-            height: var(--p-size);
+            width: 512px !important;
+            height: 128px !important;
             overflow: hidden;
             position: relative;
         }
 
-        /* 4つの面を横一列に並べた帯 */
-        .cube-strip {
+        /* 8枚（4面+コピー4面）を並べて無限ループ */
+        .slide-container {
             display: flex;
-            width: calc(var(--p-size) * 5); /* ループ用に+1面分 */
-            height: var(--p-size);
-            /* 3秒ごとに左へ切り替え */
-            animation: cubeRotate 12s infinite steps(1, end);
+            width: 1024px; /* 128px × 8枚分 */
+            height: 128px;
+            animation: shiftLeft 12s infinite steps(1, end);
         }
 
-        /* 各面の設定（PDFのデザインを完全移植） */
         .panel {
             flex-shrink: 0;
-            width: var(--p-size);
-            height: var(--p-size);
+            width: var(--unit);
+            height: var(--unit);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             padding: 8px;
-            color: var(--text-color);
+            color: var(--text-white);
+            border-right: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* ステータスに応じた背景色（JSで制御） */
-        .bg-safe { background-color: var(--safe-bg); }
-        .bg-caution { background-color: var(--caution-bg); }
-        .bg-warning { background-color: var(--warning-bg); }
-        .bg-severe { background-color: var(--severe-bg); }
-        .bg-danger { background-color: var(--danger-bg); }
-
-        /* PDFレイアウトの再現 */
         .temp-range { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
         .wbgt-val { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-        .status-label { font-size: 22px; font-weight: 900; line-height: 1.1; margin: 4px 0; letter-spacing: -1px; }
+        .status-label { font-size: 22px; font-weight: 900; line-height: 1.1; margin: 4px 0; letter-spacing: -0.5px; }
         .advice { 
             font-size: 9px; 
             font-weight: 700; 
@@ -85,95 +71,73 @@
             border-top: 1px solid rgba(255,255,255,0.6); 
             padding-top: 4px; 
             width: 100%;
-            word-break: break-all;
         }
 
-        /* 左へ順に切り替わるアニメーション（1面→2面→3面→4面→ループ） */
-        @keyframes cubeRotate {
-            0%, 24.9% { transform: translateX(0); }               /* 1面(日) */
-            25%, 49.9% { transform: translateX(-128px); }         /* 2面(英) */
-            50%, 74.9% { transform: translateX(-256px); }         /* 3面(越) */
-            75%, 99.9% { transform: translateX(-384px); }         /* 4面(中) */
-            100% { transform: translateX(0); }
+        /* アニメーション：1面ずつ左へシフト */
+        @keyframes shiftLeft {
+            0%   { transform: translateX(0); }             /* [日][英][越][中] */
+            25%  { transform: translateX(-128px); }       /* [英][越][中][日] */
+            50%  { transform: translateX(-256px); }       /* [越][中][日][英] */
+            75%  { transform: translateX(-384px); }       /* [中][日][英][越] */
+            100% { transform: translateX(-512px); }       /* [日]に戻る */
         }
     </style>
 </head>
 <body>
 
 <div class="viewport">
-    <div class="cube-strip" id="strip">
-        <div class="panel" id="p1">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p2">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p3">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p4">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
+    <div class="slide-container" id="container">
+        <div class="panel" data-lang="jp"></div>
+        <div class="panel" data-lang="en"></div>
+        <div class="panel" data-lang="vi"></div>
+        <div class="panel" data-lang="zh"></div>
+        <div class="panel" data-lang="jp"></div>
+        <div class="panel" data-lang="en"></div>
+        <div class="panel" data-lang="vi"></div>
+        <div class="panel" data-lang="zh"></div>
     </div>
 </div>
 
 <script>
-    // ループ接続用に1枚目を複製して末尾に追加
-    const strip = document.getElementById('strip');
-    strip.appendChild(strip.children[0].cloneNode(true));
+    function updateContent(val) {
+        let themeColor = '';
+        let data = {};
 
-    function renderSignage(val) {
-        let level = '';
-        let content = {};
-
-        // 環境省とPDFの基準に合わせた判定
         if (val < 21) {
-            level = 'bg-safe';
-            content = {
+            themeColor = '#0070C0'; 
+            data = {
                 jp: ["24℃未満", "21未満", "ほぼ安全", "適宜水分補給"],
                 en: ["Below 24℃", "Below 21", "Safe", "Stay hydrated"],
                 vi: ["Dưới 24℃", "Dưới 21", "An toàn", "Bổ sung nước"],
                 zh: ["24℃以下", "21以下", "基本安全", "注意补水"]
             };
         } else if (val < 25) {
-            level = 'bg-caution';
-            content = {
+            themeColor = '#00B050'; 
+            data = {
                 jp: ["24~28℃", "21~25", "注意", "積極的に水分補給"],
                 en: ["24~28℃", "21~25", "Caution", "Actively hydrate"],
                 vi: ["24~28℃", "21~25", "Chú ý", "Uống nước thường xuyên"],
                 zh: ["24~28℃", "21~25", "注意", "及时补水"]
             };
         } else if (val < 28) {
-            level = 'bg-warning';
-            content = {
+            themeColor = '#FFC000'; 
+            data = {
                 jp: ["28~31℃", "25~28", "警戒", "定期的に休憩"],
                 en: ["28~31℃", "25~28", "Warning", "Take regular breaks"],
                 vi: ["28~31℃", "25~28", "Cảnh báo", "Nghỉ ngơi định kỳ"],
                 zh: ["28~31℃", "25~28", "警戒", "定时休息"]
             };
         } else if (val < 31) {
-            level = 'bg-severe';
-            content = {
+            themeColor = '#FF6600'; 
+            data = {
                 jp: ["31~35℃", "28~31", "厳重警戒", "激しい作業は中止"],
                 en: ["31~35℃", "28~31", "Severe Warning", "Stop intense work"],
                 vi: ["31~35℃", "28~31", "Cảnh báo nghiêm trọng", "Ngừng làm việc nặng"],
                 zh: ["31~35℃", "28~31", "严重警戒", "停止剧烈作业"]
             };
         } else {
-            level = 'bg-danger';
-            content = {
+            themeColor = '#FF0000'; 
+            data = {
                 jp: ["35℃以上", "31以上", "危険", "作業を直ちに中止"],
                 en: ["Above 35℃", "Above 31", "Danger", "Stop work immediately"],
                 vi: ["Trên 35℃", "Trên 31", "Nguy hiểm", "Dừng công việc ngay"],
@@ -181,21 +145,21 @@
             };
         }
 
-        const dataOrder = [content.jp, content.en, content.vi, content.zh, content.jp];
         const panels = document.querySelectorAll('.panel');
-
-        panels.forEach((panel, i) => {
-            panel.className = 'panel ' + level;
-            const fields = panel.children;
-            fields[0].innerText = dataOrder[i][0];
-            fields[1].innerText = dataOrder[i][1];
-            fields[2].innerText = dataOrder[i][2];
-            fields[3].innerText = dataOrder[i][3];
+        panels.forEach(p => {
+            const lang = p.getAttribute('data-lang');
+            const content = data[lang];
+            p.style.backgroundColor = themeColor;
+            p.innerHTML = `
+                <div class="temp-range">${content[0]}</div>
+                <div class="wbgt-val">${content[1]}</div>
+                <div class="status-label">${content[2]}</div>
+                <div class="advice">${content[3]}</div>
+            `;
         });
     }
 
-    // 現在の大阪の値 12.8 を反映（ここを動的に変えることで全コンテンツが連動します）
-    renderSignage(12.8);
+    updateContent(12.8);
 </script>
 
 </body>
