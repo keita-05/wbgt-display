@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WBGT 4-Sided Cube Final</title>
+    <title>WBGT 4-Sided Panorama Slide</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
 
         :root {
-            /* PDFのデザインに基づく配色定義 */
-            --safe-bg: #0070C0;    /* ほぼ安全: 青 */
-            --caution-bg: #00B050; /* 注意: 緑 */
-            --warning-bg: #FFC000; /* 警戒: 黄 */
-            --severe-bg: #FF6600;  /* 厳重警戒: 橙 */
-            --danger-bg: #FF0000;  /* 危険: 赤 */
+            --safe-bg: #0070C0;
+            --caution-bg: #00B050;
+            --warning-bg: #FFC000;
+            --severe-bg: #FF6600;
+            --danger-bg: #FF0000;
             --text-color: #ffffff;
             --p-size: 128px;
         }
 
-        /* 座標 xy 0,0 固定 */
+        /* xy 0.0 固定設定 */
         * {
             margin: 0;
             padding: 0;
@@ -29,31 +28,30 @@
             background-color: #000;
             font-family: 'Noto Sans JP', sans-serif;
             overflow: hidden;
-            width: var(--p-size);
-            height: var(--p-size);
+            /* 4面分の領域を確保 */
+            width: 512px;
+            height: 128px;
             position: absolute;
             top: 0;
             left: 0;
         }
 
-        /* 128x128の表示窓 */
+        /* 全体を表示するコンテナ */
         .viewport {
-            width: var(--p-size);
-            height: var(--p-size);
+            width: 512px;
+            height: 128px;
             overflow: hidden;
-            position: relative;
         }
 
-        /* 4つの面を横一列に並べた帯 */
+        /* 8枚のパネルを並べて無限ループ（4面 + 4面コピー） */
         .cube-strip {
             display: flex;
-            width: calc(var(--p-size) * 5); /* ループ用に+1面分 */
+            width: calc(var(--p-size) * 8);
             height: var(--p-size);
-            /* 3秒ごとに左へ切り替え */
-            animation: cubeRotate 12s infinite steps(1, end);
+            /* 3秒ごとに1面分(128px)ずつ左へシフト */
+            animation: panoramaScroll 12s infinite steps(1, end);
         }
 
-        /* 各面の設定（PDFのデザインを完全移植） */
         .panel {
             flex-shrink: 0;
             width: var(--p-size);
@@ -65,16 +63,10 @@
             text-align: center;
             padding: 8px;
             color: var(--text-color);
+            border-right: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* ステータスに応じた背景色（JSで制御） */
-        .bg-safe { background-color: var(--safe-bg); }
-        .bg-caution { background-color: var(--caution-bg); }
-        .bg-warning { background-color: var(--warning-bg); }
-        .bg-severe { background-color: var(--severe-bg); }
-        .bg-danger { background-color: var(--danger-bg); }
-
-        /* PDFレイアウトの再現 */
+        /* PDFデザイン再現 */
         .temp-range { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
         .wbgt-val { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
         .status-label { font-size: 22px; font-weight: 900; line-height: 1.1; margin: 4px 0; letter-spacing: -1px; }
@@ -85,16 +77,22 @@
             border-top: 1px solid rgba(255,255,255,0.6); 
             padding-top: 4px; 
             width: 100%;
-            word-break: break-all;
         }
 
-        /* 左へ順に切り替わるアニメーション（1面→2面→3面→4面→ループ） */
-        @keyframes cubeRotate {
-            0%, 24.9% { transform: translateX(0); }               /* 1面(日) */
-            25%, 49.9% { transform: translateX(-128px); }         /* 2面(英) */
-            50%, 74.9% { transform: translateX(-256px); }         /* 3面(越) */
-            75%, 99.9% { transform: translateX(-384px); }         /* 4面(中) */
-            100% { transform: translateX(0); }
+        /* スタイルクラス */
+        .bg-safe { background-color: var(--safe-bg); }
+        .bg-caution { background-color: var(--caution-bg); }
+        .bg-warning { background-color: var(--warning-bg); }
+        .bg-severe { background-color: var(--severe-bg); }
+        .bg-danger { background-color: var(--danger-bg); }
+
+        /* 左へ左へズレていくアニメーション */
+        @keyframes panoramaScroll {
+            0%   { transform: translateX(0); }             /* [日][英][越][中] */
+            25%  { transform: translateX(-128px); }       /* [英][越][中][日(コ)] */
+            50%  { transform: translateX(-256px); }       /* [越][中][日(コ)][英(コ)] */
+            75%  { transform: translateX(-384px); }       /* [中][日(コ)][英(コ)][越(コ)] */
+            100% { transform: translateX(-512px); }       /* 瞬時に 0% へリセット */
         }
     </style>
 </head>
@@ -102,43 +100,23 @@
 
 <div class="viewport">
     <div class="cube-strip" id="strip">
-        <div class="panel" id="p1">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p2">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p3">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
-        <div class="panel" id="p4">
-            <div class="temp-range"></div>
-            <div class="wbgt-val"></div>
-            <div class="status-label"></div>
-            <div class="advice"></div>
-        </div>
+        <div class="panel" data-lang="jp"></div>
+        <div class="panel" data-lang="en"></div>
+        <div class="panel" data-lang="vi"></div>
+        <div class="panel" data-lang="zh"></div>
+        <div class="panel" data-lang="jp"></div>
+        <div class="panel" data-lang="en"></div>
+        <div class="panel" data-lang="vi"></div>
+        <div class="panel" data-lang="zh"></div>
     </div>
 </div>
 
 <script>
-    // ループ接続用に1枚目を複製して末尾に追加
-    const strip = document.getElementById('strip');
-    strip.appendChild(strip.children[0].cloneNode(true));
-
-    function renderSignage(val) {
+    function updateSignage(val) {
         let level = '';
         let content = {};
 
-        // 環境省とPDFの基準に合わせた判定
+        // PDFのデータセット
         if (val < 21) {
             level = 'bg-safe';
             content = {
@@ -177,25 +155,26 @@
                 jp: ["35℃以上", "31以上", "危険", "作業を直ちに中止"],
                 en: ["Above 35℃", "Above 31", "Danger", "Stop work immediately"],
                 vi: ["Trên 35℃", "Trên 31", "Nguy hiểm", "Dừng công việc ngay"],
-                zh: ["35℃以上", "31以上", "危险", "立即停止作业"]
+                zh: ["35℃以上", "31以上", "危险", "立即停止作業"]
             };
         }
 
-        const dataOrder = [content.jp, content.en, content.vi, content.zh, content.jp];
         const panels = document.querySelectorAll('.panel');
-
-        panels.forEach((panel, i) => {
-            panel.className = 'panel ' + level;
-            const fields = panel.children;
-            fields[0].innerText = dataOrder[i][0];
-            fields[1].innerText = dataOrder[i][1];
-            fields[2].innerText = dataOrder[i][2];
-            fields[3].innerText = dataOrder[i][3];
+        panels.forEach(p => {
+            const lang = p.getAttribute('data-lang');
+            const data = content[lang];
+            p.className = 'panel ' + level;
+            p.innerHTML = `
+                <div class="temp-range">${data[0]}</div>
+                <div class="wbgt-val">${data[1]}</div>
+                <div class="status-label">${data[2]}</div>
+                <div class="advice">${data[3]}</div>
+            `;
         });
     }
 
-    // 現在の大阪の値 12.8 を反映（ここを動的に変えることで全コンテンツが連動します）
-    renderSignage(12.8);
+    // 最新値 12.8（ほぼ安全）を反映
+    updateSignage(12.8);
 </script>
 
 </body>
