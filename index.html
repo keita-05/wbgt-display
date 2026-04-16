@@ -2,52 +2,41 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WBGT Signage - Analog Clock Edition</title>
+    <title>WBGT Real-time Signage - Sunny Icon Fixed</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", sans-serif; }
+        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", "Hiragino Kaku Gothic ProN", sans-serif; }
         .container { width: 512px; height: 128px; position: relative; overflow: hidden; }
         .set-group { display: none; width: 512px; height: 128px; flex-direction: row; position: absolute; top: 0; left: 0; }
         .active { display: flex !important; }
         
         .panel { width: 128px; height: 128px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; border-right: 1px solid #333; }
         .label { font-size: 13px; font-weight: 500; color: #999; margin-bottom: 4px; }
-        .val { font-size: 32px; font-weight: 700; color: #fff; line-height: 1; }
-        .unit { font-size: 15px; margin-left: 2px; }
         
-        /* アイコンサイズ */
-        .face-svg { width: 90px; height: 90px; }
-        .weather-svg { width: 68px; height: 68px; }
+        .time-val { font-size: 38px; font-weight: 800; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
+        .sec-val { font-size: 18px; color: #ff4500; margin-left: 2px; }
+        
+        .val { font-size: 34px; font-weight: 700; color: #fff; line-height: 1; }
+        .unit { font-size: 16px; margin-left: 2px; }
+        
+        .face-svg { width: 95px; height: 95px; }
+        .weather-svg { width: 80px; height: 80px; } /* Figmaに合わせ少し大きく調整 */
 
-        /* アナログ時計のスタイル */
-        .clock-svg { width: 100px; height: 100px; }
-        .clock-face { fill: none; stroke: #fff; stroke-width: 2; }
-        .hand { stroke: #fff; stroke-linecap: round; }
-        .hour-hand { stroke-width: 4; }
-        .min-hand { stroke-width: 3; }
-        .sec-hand { stroke: #ff4500; stroke-width: 1.5; }
-
-        /* ニュースティッカー（白背景） */
         .pan-content { width: 512px; height: 128px; background-color: #fff; display: flex; align-items: center; overflow: hidden; }
         .ticker-container { width: 100%; height: 128px; position: relative; display: flex; align-items: center; }
         .ticker-text { 
             white-space: nowrap; font-size: 28px; font-weight: 800; color: #000; 
             position: absolute; padding-left: 100%; display: flex; align-items: center;
-            animation: ticker-anim 15s linear infinite; /* 速度調整: 15秒 */
+            animation: ticker-anim 18s linear infinite; 
         }
         .ticker-face-icon { width: 44px; height: 44px; margin: 0 15px; }
 
-        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-350%); } }
-
-        .level-0 { color: #00b0f0 !important; } 
-        .level-1, .level-2 { color: #ffff00 !important; } 
-        .level-3 { color: #ff6600 !important; } 
-        .level-4 { color: #ff0000 !important; }
+        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-400%); } }
     </style>
 </head>
 <body>
 
 <svg style="display: none;">
-    <symbol id="icon-sunny" viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="#ff4d00"/><g stroke="#ff4d00" stroke-width="8" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="90"/><line x1="10" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="32" y2="32"/><line x1="68" y1="68" x2="78" y2="78"/></g></symbol>
+    <symbol id="icon-sunny" viewBox="0 0 120 120"><circle cx="60" cy="60" r="24" fill="#ff4d00"/><g stroke="#ff4d00" stroke-width="8" stroke-linecap="round"><line x1="60" y1="15" x2="60" y2="30"/><line x1="60" y1="90" x2="60" y2="105"/><line x1="15" y1="60" x2="30" y2="60"/><line x1="90" y1="60" x2="105" y2="60"/><line x1="28" y1="28" x2="39" y2="39"/><line x1="81" y1="81" x2="92" y2="92"/><line x1="28" y1="92" x2="39" y2="81"/><line x1="81" y1="39" x2="92" y2="28"/></g></symbol>
     <symbol id="icon-cloudy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#999"/></symbol>
     <symbol id="icon-rainy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#666"/><path d="M45,75 L40,90 M65,75 L60,90" stroke="#00b0f0" stroke-width="6" stroke-linecap="round"/></symbol>
     <symbol id="face-0" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#00b0f0"/><circle cx="35" cy="40" r="5" fill="#fff"/><circle cx="65" cy="40" r="5" fill="#fff"/><path d="M 30 65 Q 50 85 70 65" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
@@ -61,31 +50,25 @@
     <div id="set1" class="set-group active">
         <div class="panel"><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
         <div class="panel">
-            <svg class="clock-svg" viewBox="0 0 100 100">
-                <circle class="clock-face" cx="50" cy="50" r="45"/>
-                <line id="hour1" class="hand hour-hand" x1="50" y1="50" x2="50" y2="25"/>
-                <line id="min1" class="hand min-hand" x1="50" y1="50" x2="50" y2="15"/>
-                <line id="sec1" class="hand sec-hand" x1="50" y1="50" x2="50" y2="10"/>
-            </svg>
+            <div class="label">時刻</div>
+            <div class="time-container">
+                <span class="time-val clock-hm">--:--</span><span class="sec-val clock-s">--</span>
+            </div>
         </div>
         <div class="panel"><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
         <div class="panel">
-            <svg class="clock-svg" viewBox="0 0 100 100">
-                <circle class="clock-face" cx="50" cy="50" r="45"/>
-                <line id="hour2" class="hand hour-hand" x1="50" y1="50" x2="50" y2="25"/>
-                <line id="min2" class="hand min-hand" x1="50" y1="50" x2="50" y2="15"/>
-                <line id="sec2" class="hand sec-hand" x1="50" y1="50" x2="50" y2="10"/>
-            </svg>
+            <div class="label">時刻</div>
+            <div class="time-container">
+                <span class="time-val clock-hm">--:--</span><span class="sec-val clock-s">--</span>
+            </div>
         </div>
     </div>
-    
     <div id="set2" class="set-group">
         <div class="panel"><div class="label">現在の天気</div><svg class="weather-svg"><use id="weather-icon" href="#icon-sunny"/></svg></div>
         <div class="panel"><div class="label">気温</div><div class="val"><span class="temp-val">--</span><span class="unit">℃</span></div></div>
         <div class="panel"><div class="label">湿度</div><div class="val"><span class="humi-val">--</span><span class="unit">%</span></div></div>
-        <div class="panel"><div class="label">暑さ指数</div><svg class="face-svg" style="width:70px;height:70px;"><use class="face-use" href="#face-0"/></svg></div>
+        <div class="panel"><div class="label">暑さ指数</div><svg class="face-svg" style="width:75px;height:75px;"><use class="face-use" href="#face-0"/></svg></div>
     </div>
-    
     <div id="set3" class="set-group">
         <div class="pan-content">
             <div class="ticker-container">
@@ -122,7 +105,7 @@
                 {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"}, [cite: 9-16]
                 {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"}, [cite: 24-29]
                 {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"}, [cite: 34-39]
-                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作業"}, [cite: 42-48]
+                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作业"}, [cite: 42-48]
                 {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"} [cite: 57-61]
             ];
 
@@ -136,21 +119,14 @@
         } catch (e) { console.error(e); }
     }
 
-    function updateAnalogClock() {
+    function updateDigitalClock() {
         const now = new Date();
-        const s = now.getSeconds();
-        const m = now.getMinutes();
-        const h = now.getHours();
+        const h = now.getHours().toString().padStart(2, '0');
+        const m = now.getMinutes().toString().padStart(2, '0');
+        const s = now.getSeconds().toString().padStart(2, '0');
 
-        const sDeg = s * 6;
-        const mDeg = m * 6 + s * 0.1;
-        const hDeg = (h % 12) * 30 + m * 0.5;
-
-        for(let i=1; i<=2; i++) {
-            document.getElementById(`sec${i}`).setAttribute('transform', `rotate(${sDeg}, 50, 50)`);
-            document.getElementById(`min${i}`).setAttribute('transform', `rotate(${mDeg}, 50, 50)`);
-            document.getElementById(`hour${i}`).setAttribute('transform', `rotate(${hDeg}, 50, 50)`);
-        }
+        document.querySelectorAll('.clock-hm').forEach(el => el.innerText = `${h}:${m}`);
+        document.querySelectorAll('.clock-s').forEach(el => el.innerText = s);
     }
 
     setInterval(() => {
@@ -159,8 +135,10 @@
         document.getElementById('set'+currentSet).classList.add('active');
     }, 5000);
 
-    updateAnalogClock(); updateWeather();
-    setInterval(updateAnalogClock, 1000);
+    updateDigitalClock(); 
+    updateWeather();
+    
+    setInterval(updateDigitalClock, 1000);
     setInterval(updateWeather, 300000);
 </script>
 </body>
