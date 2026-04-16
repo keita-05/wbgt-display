@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=512, initial-scale=1.0">
     <title>WBGT 4-Panel Seamless Slide</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap');
 
         :root {
-            /* PDFのデザインに基づく配色 */
             --bg-safe: #0070C0;
             --bg-caution: #00B050;
             --bg-warning: #FFC000;
@@ -17,24 +17,27 @@
             --unit: 128px;
         }
 
-        /* xy 0.0 固定 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
+        /* 絶対に512x128を崩さない強力な指定 */
+        html, body {
             background-color: #000;
             font-family: 'Noto Sans JP', sans-serif;
             overflow: hidden;
-            width: 512px;
-            height: 128px;
+            width: 512px !important;
+            min-width: 512px !important;
+            height: 128px !important;
+            min-height: 128px !important;
             position: absolute;
             top: 0;
             left: 0;
+            margin: 0;
         }
 
         /* 512pxの表示エリア */
         .viewport {
-            width: 512px;
-            height: 128px;
+            width: 512px !important;
+            height: 128px !important;
             overflow: hidden;
             position: relative;
         }
@@ -42,9 +45,8 @@
         /* 8枚（4面+コピー4面）を並べて無限ループ */
         .slide-container {
             display: flex;
-            width: calc(var(--unit) * 8);
+            width: 1024px; /* 128px × 8枚分 */
             height: 128px;
-            /* 3秒ごとに左へ128px移動 */
             animation: shiftLeft 12s infinite steps(1, end);
         }
 
@@ -83,9 +85,6 @@
             75%  { transform: translateX(-384px); }       /* [中][日][英][越] */
             100% { transform: translateX(-512px); }       /* [日]に戻る */
         }
-
-        /* 動的背景色クラス */
-        .bg-level { background-color: var(--bg-color); }
     </style>
 </head>
 <body>
@@ -108,9 +107,8 @@
         let themeColor = '';
         let data = {};
 
-        // PDFの仕様に基づいた判定（現在は12.8：ほぼ安全）
         if (val < 21) {
-            themeColor = '#0070C0'; // 青
+            themeColor = '#0070C0'; 
             data = {
                 jp: ["24℃未満", "21未満", "ほぼ安全", "適宜水分補給"],
                 en: ["Below 24℃", "Below 21", "Safe", "Stay hydrated"],
@@ -118,7 +116,7 @@
                 zh: ["24℃以下", "21以下", "基本安全", "注意补水"]
             };
         } else if (val < 25) {
-            themeColor = '#00B050'; // 緑
+            themeColor = '#00B050'; 
             data = {
                 jp: ["24~28℃", "21~25", "注意", "積極的に水分補給"],
                 en: ["24~28℃", "21~25", "Caution", "Actively hydrate"],
@@ -126,7 +124,7 @@
                 zh: ["24~28℃", "21~25", "注意", "及时补水"]
             };
         } else if (val < 28) {
-            themeColor = '#FFC000'; // 黄
+            themeColor = '#FFC000'; 
             data = {
                 jp: ["28~31℃", "25~28", "警戒", "定期的に休憩"],
                 en: ["28~31℃", "25~28", "Warning", "Take regular breaks"],
@@ -134,7 +132,7 @@
                 zh: ["28~31℃", "25~28", "警戒", "定时休息"]
             };
         } else if (val < 31) {
-            themeColor = '#FF6600'; // 橙
+            themeColor = '#FF6600'; 
             data = {
                 jp: ["31~35℃", "28~31", "厳重警戒", "激しい作業は中止"],
                 en: ["31~35℃", "28~31", "Severe Warning", "Stop intense work"],
@@ -142,32 +140,7 @@
                 zh: ["31~35℃", "28~31", "严重警戒", "停止剧烈作业"]
             };
         } else {
-            themeColor = '#FF0000'; // 赤
+            themeColor = '#FF0000'; 
             data = {
                 jp: ["35℃以上", "31以上", "危険", "作業を直ちに中止"],
-                en: ["Above 35℃", "Above 31", "Danger", "Stop work immediately"],
-                vi: ["Trên 35℃", "Trên 31", "Nguy hiểm", "Dừng công việc ngay"],
-                zh: ["35℃以上", "31以上", "危险", "立即停止作业"]
-            };
-        }
-
-        const panels = document.querySelectorAll('.panel');
-        panels.forEach(p => {
-            const lang = p.getAttribute('data-lang');
-            const content = data[lang];
-            p.style.backgroundColor = themeColor;
-            p.innerHTML = `
-                <div class="temp-range">${content[0]}</div>
-                <div class="wbgt-val">${content[1]}</div>
-                <div class="status-label">${content[2]}</div>
-                <div class="advice">${content[3]}</div>
-            `;
-        });
-    }
-
-    // 取得したWBGT値を反映（12.8：ほぼ安全）
-    updateContent(12.8);
-</script>
-
-</body>
-</html>
+                en:
