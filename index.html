@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WBGT Multi-Language Signage - Final</title>
+    <title>WBGT Multi-Language Signage - Ultimate</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", Arial, sans-serif; }
         .container { width: 512px; height: 128px; position: relative; overflow: hidden; }
         .set-group { display: none; width: 512px; height: 128px; flex-direction: row; position: absolute; top: 0; left: 0; }
         .active { display: flex !important; }
         
+        /* Figmaデザイン再現 */
         .panel { width: 128px; height: 128px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; border-right: 1px solid #333; }
         .label { font-size: 14px; font-weight: 500; color: #999; margin-bottom: 6px; letter-spacing: 0.05em; }
         .val { font-size: 34px; font-weight: 700; color: #fff; line-height: 1; }
@@ -17,6 +18,7 @@
         .face-svg { width: 88px; height: 88px; }
         .weather-svg { width: 68px; height: 68px; }
 
+        /* 3セット目：白背景・多言語ティッカー */
         .pan-content { width: 512px; height: 128px; background-color: #fff; display: flex; align-items: center; overflow: hidden; }
         .ticker-container { width: 100%; height: 128px; position: relative; display: flex; align-items: center; }
         .ticker-text { 
@@ -32,8 +34,9 @@
         }
         .ticker-face-icon { width: 44px; height: 44px; margin: 0 15px; }
 
-        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-350%); } }
+        @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-400%); } }
 
+        /* WBGTレベル別カラー */
         .level-0 { color: #00b0f0 !important; } 
         .level-1, .level-2 { color: #ffff00 !important; } 
         .level-3 { color: #ff6600 !important; } 
@@ -43,7 +46,7 @@
 <body>
 
 <svg style="display: none;">
-    <symbol id="icon-sunny" viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="#ff4d00"/><g stroke="#ff4d00" stroke-width="8" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="90"/><line x1="10" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="32" y2="32"/><line x1="68" y1="68" x2="78" y2="78"/></g></symbol>
+    <symbol id="icon-sunny" viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" fill="#ff4d00"/><g stroke="#ff4d00" stroke-width="8" stroke-linecap="round"><line x1="50" y1="10" x2="50" y2="24"/><line x1="50" y1="76" x2="50" y2="90"/><line x1="10" y1="50" x2="24" y2="50"/><line x1="76" y1="50" x2="90" y2="50"/><line x1="22" y1="22" x2="32" y2="32"/><line x1="68" y1="68" x2="78" y2="78"/><line x1="22" y1="78" x2="32" y2="68"/><line x1="68" y1="22" x2="78" y2="32"/></g></symbol>
     <symbol id="icon-cloudy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#999"/></symbol>
     <symbol id="icon-rainy" viewBox="0 0 100 100"><path d="M25,65 a20,20 0 1,1 20,-20 a25,25 0 1,1 40,5 a15,15 0 1,1 0,30 h-60 a20,20 0 1,1 0,-40" fill="#666"/><path d="M45,75 L40,90 M65,75 L60,90" stroke="#00b0f0" stroke-width="6" stroke-linecap="round"/></symbol>
     <symbol id="face-0" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#00b0f0"/><circle cx="35" cy="40" r="5" fill="#fff"/><circle cx="65" cy="40" r="5" fill="#fff"/><path d="M 30 65 Q 50 85 70 65" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
@@ -56,7 +59,7 @@
 <div class="container">
     <div id="set1" class="set-group active">
         <div class="panel"><div class="label" id="date1">--/--</div><div class="val" id="time1">--:--</div></div>
-        <div class="panel"><div class="label">現在の天気</div><svg class="weather-svg"><use id="weather-icon" href="#icon-sunny"/></svg></div>
+        <div class="panel"><div class="label">天気</div><svg class="weather-svg"><use id="weather-icon" href="#icon-sunny"/></svg></div>
         <div class="panel"><div class="label">気温</div><div class="val"><span class="temp-val">--</span><span class="unit">℃</span></div></div>
         <div class="panel"><div class="label">湿度</div><div class="val"><span class="humi-val">--</span><span class="unit">%</span></div></div>
     </div>
@@ -89,26 +92,30 @@
             const humi = data.current.relative_humidity_2m;
             const code = data.current.weather_code;
 
+            // 天気アイコン設定
             let wIcon = "#icon-sunny";
             if (code >= 1 && code <= 3) wIcon = "#icon-cloudy";
             else if (code >= 51) wIcon = "#icon-rainy";
             document.getElementById('weather-icon').setAttribute('href', wIcon);
 
+            // WBGT判定 (PDFに基づくしきい値)
             const wbgt = (0.725 * temp) + (0.0368 * humi) + (0.00115 * temp * humi) - 2.503;
             let lv = 0;
             if (wbgt >= 31) lv = 4;      // 危険 [cite: 53-56]
-            else if (wbgt >= 28) lv = 3; // 厳重警戒 [cite: 30, 42]
-            else if (wbgt >= 25) lv = 2; // 警戒 [cite: 32, 37]
+            else if (wbgt >= 28) lv = 3; // 厳重警戒 [cite: 42]
+            else if (wbgt >= 25) lv = 2; // 警戒 [cite: 30-33]
             else if (wbgt >= 21) lv = 1; // 注意 [cite: 19-23]
 
+            // 多言語メッセージ [cite: 9-61]
             const multi = [
-                {jp:"ほぼ安全：適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"}, [cite: 9-16]
-                {jp:"注意：積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"}, [cite: 24-29]
-                {jp:"警戒：定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"}, [cite: 34-39]
-                {jp:"厳重警戒：激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止劇烈作業"}, [cite: 42-48]
-                {jp:"危険：作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"} [cite: 57-61]
+                {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"},
+                {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"},
+                {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"},
+                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作业"},
+                {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危险：立即停止作业"}
             ];
 
+            // UI更新
             document.querySelectorAll('.temp-val').forEach(el => el.innerText = Math.round(temp));
             document.querySelectorAll('.humi-val').forEach(el => el.innerText = Math.round(humi));
             document.querySelectorAll('.face-use').forEach(el => el.setAttribute('href', '#face-' + lv));
@@ -136,8 +143,8 @@
     }, 5000);
 
     updateTime(); updateWeather();
-    setInterval(updateTime, 1000);
-    setInterval(updateWeather, 300000);
+    setInterval(updateTime, 1000); // 1秒ごとに時計を更新
+    setInterval(updateWeather, 300000); // 5分ごとに天気を更新
 </script>
 </body>
 </html>
