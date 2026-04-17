@@ -84,18 +84,15 @@
             const humi = data.current.relative_humidity_2m;
             const code = data.current.weather_code;
 
-            // 天気アイコンの分岐
             let wIcon = "#icon-sunny";
             if (code >= 1 && code <= 3) wIcon = "#icon-cloudy";
             else if (code >= 51) wIcon = "#icon-rainy";
             document.getElementById('weather-icon').setAttribute('href', wIcon);
 
-            // WBGT簡易計算（実効温度に近い近似式）
             const wbgt = (0.725 * temp) + (0.0368 * humi) + (0.00115 * temp * humi) - 2.503;
             let lv = 0;
             if (wbgt >= 31) lv = 4; else if (wbgt >= 28) lv = 3; else if (wbgt >= 25) lv = 2; else if (wbgt >= 21) lv = 1;
 
-            // 多言語メッセージ配列
             const multi = [
                 {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"},
                 {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"},
@@ -104,7 +101,6 @@
                 {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"}
             ];
 
-            // 値の反映
             document.querySelectorAll('.temp-val').forEach(el => el.innerText = Math.round(temp));
             document.querySelectorAll('.humi-val').forEach(el => el.innerText = Math.round(humi));
             document.querySelectorAll('.face-use').forEach(el => el.setAttribute('href', '#face-' + lv));
@@ -122,45 +118,30 @@
         document.querySelectorAll('.clock-hm').forEach(el => el.innerText = h + ":" + m);
     }
 
-   window.onload = function() {
-        updateDigitalClock();
-        updateWeather();
-        
-        // 画面切り替えのメイン関数
-        function switchDisplay() {
-            // 今のセットを非表示にする
-            document.getElementById('set' + currentSet).classList.remove('active');
-            
-            // 次のセット番号を決定 (1→2→3→1...)
-            currentSet = (currentSet % 3) + 1;
-            
-            // 新しいセットを表示
-            document.getElementById('set' + currentSet).classList.add('active');
+    function switchDisplay() {
+        document.getElementById('set' + currentSet).classList.remove('active');
+        currentSet = (currentSet % 3) + 1;
+        document.getElementById('set' + currentSet).classList.add('active');
 
-            // --- 表示時間の設定 ---
-            
-            if (currentSet === 3) {
-                nextDelay = 15000; // セット3（ティカー）の時だけ15秒表示
-            } else if (currentSet === 1) {
-                nextDelay = 10000;  // セット1（時計）は10秒
-            } else {
-                nextDelay = 10000;  // セット2（天気詳細）は10秒
-            }
-
-            // 次の切り替えを予約（再帰的に呼び出し）
-            setTimeout(switchDisplay, nextDelay);
+        let nextDelay = 10000; // 基本10秒
+        if (currentSet === 3) {
+            nextDelay = 15000; // ニュースティカーは15秒
         }
 
-        // 最初の切り替えタイマーをスタート
-        setTimeout(switchDisplay, 5000);
+        setTimeout(switchDisplay, nextDelay);
+    }
 
+    window.onload = function() {
+        updateDigitalClock();
+        updateWeather();
+
+        // 時計更新タイマー
         setInterval(updateDigitalClock, 1000);
+        // 天気更新タイマー（5分おき）
         setInterval(updateWeather, 300000);
-    };
 
-        // タイマー設定
-        setInterval(updateDigitalClock, 1000); // 1秒ごとに時計更新
-        setInterval(updateWeather, 300000);    // 5分ごとに天気取得
+        // 最初の切り替え予約（10秒後に実行）
+        setTimeout(switchDisplay, 10000);
     };
 </script>
 </body>
