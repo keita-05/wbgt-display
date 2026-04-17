@@ -122,17 +122,41 @@
         document.querySelectorAll('.clock-hm').forEach(el => el.innerText = h + ":" + m);
     }
 
-    window.onload = function() {
-        // 初回実行
+   window.onload = function() {
         updateDigitalClock();
         updateWeather();
         
-        // 5秒おきに表示セットを切り替え
-        setInterval(() => {
-            document.getElementById('set'+currentSet).classList.remove('active');
+        // 画面切り替えのメイン関数
+        function switchDisplay() {
+            // 今のセットを非表示にする
+            document.getElementById('set' + currentSet).classList.remove('active');
+            
+            // 次のセット番号を決定 (1→2→3→1...)
             currentSet = (currentSet % 3) + 1;
-            document.getElementById('set'+currentSet).classList.add('active');
-        }, 10000);
+            
+            // 新しいセットを表示
+            document.getElementById('set' + currentSet).classList.add('active');
+
+            // --- 表示時間の設定 ---
+            
+            if (currentSet === 3) {
+                nextDelay = 15000; // セット3（ティカー）の時だけ15秒表示
+            } else if (currentSet === 1) {
+                nextDelay = 10000;  // セット1（時計）は10秒
+            } else {
+                nextDelay = 10000;  // セット2（天気詳細）は10秒
+            }
+
+            // 次の切り替えを予約（再帰的に呼び出し）
+            setTimeout(switchDisplay, nextDelay);
+        }
+
+        // 最初の切り替えタイマーをスタート
+        setTimeout(switchDisplay, 5000);
+
+        setInterval(updateDigitalClock, 1000);
+        setInterval(updateWeather, 300000);
+    };
 
         // タイマー設定
         setInterval(updateDigitalClock, 1000); // 1秒ごとに時計更新
