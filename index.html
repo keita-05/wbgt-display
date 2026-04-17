@@ -105,11 +105,11 @@
             if (wbgt >= 31) lv = 4; else if (wbgt >= 28) lv = 3; else if (wbgt >= 25) lv = 2; else if (wbgt >= 21) lv = 1;
 
             const multi = [
-                {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"},
-                {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"},
-                {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"},
-                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作業"},
-                {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"}
+                {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"}, [cite: 9-16]
+                {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"}, [cite: 24-29]
+                {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"}, [cite: 34-39]
+                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作業"}, [cite: 42-48]
+                {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"} [cite: 57-61]
             ];
 
             document.querySelectorAll('.temp-val').forEach(el => el.innerText = Math.round(temp));
@@ -141,4 +141,18 @@
     }
 
     setInterval(() => {
-        document.getElementById('set'+currentSet
+        document.getElementById('set'+currentSet).classList.remove('active');
+        currentSet = (currentSet % 3) + 1;
+        document.getElementById('set'+currentSet).classList.add('active');
+    }, 5000);
+
+    // 初回実行
+    updateDigitalClock(); 
+    updateWeather();
+    
+    // インターバル
+    setInterval(updateDigitalClock, 1000); // 1秒ごとに実行
+    setInterval(updateWeather, 300000);
+</script>
+</body>
+</html>
