@@ -2,26 +2,31 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>WBGT Signage - Digital Clock Fixed</title>
+    <title>WBGT Multi-Language Signage - Final Edition</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", sans-serif; }
+        /* Figmaデザイン・視認性重視の基本設定 */
+        body { margin: 0; padding: 0; background-color: #000; overflow: hidden; font-family: "Inter", "Hiragino Kaku Gothic ProN", sans-serif; }
         .container { width: 512px; height: 128px; position: relative; overflow: hidden; }
         .set-group { display: none; width: 512px; height: 128px; flex-direction: row; position: absolute; top: 0; left: 0; }
         .active { display: flex !important; }
         
+        /* パネル共通設定 */
         .panel { width: 128px; height: 128px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; border-right: 1px solid #333; }
-        .label { font-size: 13px; font-weight: 500; color: #999; margin-bottom: 4px; }
+        .label { font-size: 13px; font-weight: 500; color: #999; margin-bottom: 4px; letter-spacing: 0.05em; }
         
-        /* 時計のスタイル */
+        /* デジタル時計：視認性最大化 */
         .time-val { font-size: 38px; font-weight: 800; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
         .sec-val { font-size: 18px; color: #ff4500; margin-left: 2px; font-weight: 700; }
         
+        /* 気象数値 */
         .val { font-size: 34px; font-weight: 700; color: #fff; line-height: 1; }
-        .unit { font-size: 16px; margin-left: 2px; }
+        .unit { font-size: 16px; margin-left: 2px; font-weight: 400; }
         
+        /* アイコンサイズ調整 */
         .face-svg { width: 95px; height: 95px; }
         .weather-svg { width: 80px; height: 80px; }
 
+        /* ニュースティッカー（白背景・多言語対応） */
         .pan-content { width: 512px; height: 128px; background-color: #fff; display: flex; align-items: center; overflow: hidden; }
         .ticker-container { width: 100%; height: 128px; position: relative; display: flex; align-items: center; }
         .ticker-text { 
@@ -32,6 +37,12 @@
         .ticker-face-icon { width: 44px; height: 44px; margin: 0 15px; }
 
         @keyframes ticker-anim { 0% { transform: translateX(0); } 100% { transform: translateX(-400%); } }
+
+        /* レベル別カラー */
+        .level-0 { color: #00b0f0 !important; } 
+        .level-1, .level-2 { color: #ffff00 !important; } 
+        .level-3 { color: #ff6600 !important; } 
+        .level-4 { color: #ff0000 !important; }
     </style>
 </head>
 <body>
@@ -52,16 +63,12 @@
         <div class="panel"><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
         <div class="panel">
             <div class="label">時刻</div>
-            <div>
-                <span class="time-val clock-hm">--:--</span><span class="sec-val clock-s">--</span>
-            </div>
+            <div><span class="clock-hm time-val">--:--</span><span class="clock-s sec-val">--</span></div>
         </div>
         <div class="panel"><svg class="face-svg"><use class="face-use" href="#face-0"/></svg></div>
         <div class="panel">
             <div class="label">時刻</div>
-            <div>
-                <span class="time-val clock-hm">--:--</span><span class="sec-val clock-s">--</span>
-            </div>
+            <div><span class="clock-hm time-val">--:--</span><span class="clock-s sec-val">--</span></div>
         </div>
     </div>
     
@@ -87,6 +94,7 @@
     const lon = params.get('lon') || '135.5023';
     let currentSet = 1;
 
+    // 天気・暑さ指数情報の取得と反映
     async function updateWeather() {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code`);
@@ -95,64 +103,70 @@
             const humi = data.current.relative_humidity_2m;
             const code = data.current.weather_code;
 
+            // 天気アイコン分岐
             let wIcon = "#icon-sunny";
             if (code >= 1 && code <= 3) wIcon = "#icon-cloudy";
             else if (code >= 51) wIcon = "#icon-rainy";
             document.getElementById('weather-icon').setAttribute('href', wIcon);
 
+            // WBGT計算（PDF基準）
             const wbgt = (0.725 * temp) + (0.0368 * humi) + (0.00115 * temp * humi) - 2.503;
             let lv = 0;
-            if (wbgt >= 31) lv = 4; else if (wbgt >= 28) lv = 3; else if (wbgt >= 25) lv = 2; else if (wbgt >= 21) lv = 1;
+            if (wbgt >= 31) lv = 4;      // 危険 [cite: 53-56]
+            else if (wbgt >= 28) lv = 3; // 厳重警戒 [cite: 42-48]
+            else if (wbgt >= 25) lv = 2; // 警戒 [cite: 30-33]
+            else if (wbgt >= 21) lv = 1; // 注意 [cite: 19-23]
 
+            // 多言語メッセージの定義 [cite: 9-61]
             const multi = [
-                {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"}, [cite: 9-16]
-                {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"}, [cite: 24-29]
-                {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"}, [cite: 34-39]
-                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作業"}, [cite: 42-48]
-                {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危険：立即停止作業"} [cite: 57-61]
+                {jp:"【ほぼ安全】適宜水分補給", en:"Safe: Stay hydrated", vn:"An toàn: Bổ sung nước", cn:"基本安全：注意补水"},
+                {jp:"【注意】積極的に水分補給", en:"Caution: Actively hydrate", vn:"Chú ý: Uống nước thường xuyên", cn:"注意：及时补水"},
+                {jp:"【警戒】定期的に休憩", en:"Warning: Take regular breaks", vn:"Cảnh báo: Nghỉ ngơi định kỳ", cn:"警戒：定时休息"},
+                {jp:"【厳重警戒】激しい作業中止", en:"Severe Warning: Stop intense work", vn:"Cảnh báo nghiêm trọng: Ngừng làm việc nặng", cn:"严重警戒：停止剧烈作业"},
+                {jp:"【危険】作業を直ちに中止", en:"Danger: Stop work immediately", vn:"Nguy hiểm: Dừng công việc ngay", cn:"危险：立即停止作业"}
             ];
 
+            // 画面要素の更新
             document.querySelectorAll('.temp-val').forEach(el => el.innerText = Math.round(temp));
             document.querySelectorAll('.humi-val').forEach(el => el.innerText = Math.round(humi));
             document.querySelectorAll('.face-use').forEach(el => el.setAttribute('href', '#face-' + lv));
 
+            // ティッカー内容の動的生成
             const m = multi[lv];
             const faceHtml = `<svg class="ticker-face-icon"><use href="#face-${lv}"/></svg>`;
             document.getElementById('ticker-wrap').innerHTML = `${m.jp}${faceHtml}${m.en}${faceHtml}${m.vn}${faceHtml}${m.cn}${faceHtml}`;
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Weather update failed:", e); }
     }
 
-    // デジタル時計更新関数
+    // デジタル時計の更新
     function updateDigitalClock() {
         const now = new Date();
         const h = now.getHours().toString().padStart(2, '0');
         const m = now.getMinutes().toString().padStart(2, '0');
         const s = now.getSeconds().toString().padStart(2, '0');
 
-        const hmElements = document.getElementsByClassName('clock-hm');
-        const sElements = document.getElementsByClassName('clock-s');
-
-        for(let i=0; i<hmElements.length; i++) {
-            hmElements[i].innerText = `${h}:${m}`;
-        }
-        for(let i=0; i<sElements.length; i++) {
-            sElements[i].innerText = s;
-        }
+        document.querySelectorAll('.clock-hm').forEach(el => el.innerText = h + ":" + m);
+        document.querySelectorAll('.clock-s').forEach(el => el.innerText = s);
     }
 
-    setInterval(() => {
-        document.getElementById('set'+currentSet).classList.remove('active');
-        currentSet = (currentSet % 3) + 1;
-        document.getElementById('set'+currentSet).classList.add('active');
-    }, 5000);
+    // ページの読み込み完了後にすべての機能を同期スタート
+    window.onload = function() {
+        updateDigitalClock();
+        updateWeather();
+        
+        // 5秒おきの画面（セット）切り替え
+        setInterval(() => {
+            document.getElementById('set'+currentSet).classList.remove('active');
+            currentSet = (currentSet % 3) + 1;
+            document.getElementById('set'+currentSet).classList.add('active');
+        }, 5000);
 
-    // 初回実行
-    updateDigitalClock(); 
-    updateWeather();
-    
-    // インターバル
-    setInterval(updateDigitalClock, 1000); // 1秒ごとに実行
-    setInterval(updateWeather, 300000);
+        // 1秒おきの時計更新
+        setInterval(updateDigitalClock, 1000);
+        
+        // 5分おきの気象データ更新
+        setInterval(updateWeather, 300000);
+    };
 </script>
 </body>
 </html>
